@@ -2,7 +2,6 @@ import Fluent
 import Vapor
 
 func routes(_ app: Application) throws {
-    
     /// 主页
     app.get("index.html") { req async throws in
         try await req.view.render("index")
@@ -29,12 +28,12 @@ func routes(_ app: Application) throws {
     app.on(.GET, "download_ipa", use: uploadController.downloadIPA)
     
     /// 解密数据页面
-    app.get("decrypt.html") { req async throws  in
+    app.get("decrypt.html") { req async throws in
         try await req.view.render("decrypt")
     }
     
     /// 获取解密参数
-    func getDecryptParams(req:Request) async throws -> DecryptModel {
+    func getDecryptParams(req: Request) async throws -> DecryptModel {
         guard let model = try await DecryptModel.query(on: req.db).sort(.id, .descending).first() else {
             throw Abort(.notFound, reason: "解密参数不存在")
         }
@@ -42,8 +41,8 @@ func routes(_ app: Application) throws {
     }
     
     /// 更新解密参数
-    func updateDecryptParams(req:Request, json:String) async throws {
-        let all = try await  DecryptModel.query(on: req.db).sort(.id, .descending).all()
+    func updateDecryptParams(req: Request, json: String) async throws {
+        let all = try await DecryptModel.query(on: req.db).sort(.id, .descending).all()
         for item in all {
             try await item.delete(on: req.db)
         }
@@ -54,7 +53,7 @@ func routes(_ app: Application) throws {
     /// 解密数据
     app.on(.POST, "decrypt") { req async throws -> String in
         struct Input: Content {
-            let data:String
+            let data: String
         }
         let input = try req.content.decode(Input.self)
         let model = try await getDecryptParams(req: req)
@@ -62,30 +61,32 @@ func routes(_ app: Application) throws {
     }
     
     /// 查看ipa信息
-    app.get("ipa_preview.html") { req async throws  in
+    app.get("ipa_preview.html") { req async throws in
         try await req.view.render("ipa_preview")
     }
     
+    /// 更新解密参数的界面
     app.get("update_decrypt_keys.html") { req in
         try await req.view.render("update_decrypt_keys")
     }
     
+    /// 上传更新解密参数
     app.on(.POST, "update_decrypt_params") { req async throws -> HTTPStatus in
         struct Input: Content {
-            let data:String
+            let data: String
         }
         let input = try req.content.decode(Input.self)
         try await updateDecryptParams(req: req, json: input.data)
         return .ok
     }
     
-/*
-    app.get("download") { req -> EventLoopFuture<Response> in
-        let fileName = req.query["name"] ?? ""
-        guard !fileName.isEmpty else {
-            throw Abort(.notFound)
-        }
-        return req.eventLoop.makeSucceededFuture(req.fileio.streamFile(at: "Public/Resign/\(fileName)"))
-    }
-*/
+    /*
+     app.get("download") { req -> EventLoopFuture<Response> in
+         let fileName = req.query["name"] ?? ""
+         guard !fileName.isEmpty else {
+             throw Abort(.notFound)
+         }
+         return req.eventLoop.makeSucceededFuture(req.fileio.streamFile(at: "Public/Resign/\(fileName)"))
+     }
+     */
 }
