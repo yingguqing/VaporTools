@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>网络数据解密</title>
+  </head>
+  
+  <body style="text-align:center;">
+    <h1>网络数据解密</h1>
+    <textarea id="decrypt">
+    </textarea>
+    <br>
+    <input type="button" onclick="decrypt()" value="解密" />
+    <div id="result">
+    </div>
+  </body>
+
+</html>
+<script type="text/javascript">function decrypt() {
+    var data = document.getElementById('decrypt').value;
+    var xhr = new XMLHttpRequest();
+    var fd = new FormData();
+    fd.append("data", data);
+    xhr.addEventListener("load", loadComplete, false);
+    xhr.open("POST", "/decrypt");
+    xhr.send(fd);
+  }
+  function loadComplete(evt) {
+    document.getElementById('result').innerHTML = evt.target.responseText;
+  }</script>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>更新解密参数</title>
+  </head>
+  
+  <body style="text-align:center;">
+    <h1>更新解密参数</h1>
+    <textarea id="decrypt"></textarea>
+    <br>
+    <input type="button" onclick="update()" value="更新" /><br>
+    <div id="result">
+    </div>
+  </body>
+
+</html>
+<script type="text/javascript">
+  function update() {
+    var data = document.getElementById('decrypt').value;
+    var xhr = new XMLHttpRequest();
+    var fd = new FormData();
+    fd.append("data", data);
+    xhr.addEventListener("load", loadComplete, false);
+    xhr.open("POST", "/update_decrypt_params");
+    xhr.send(fd);
+  }
+  function loadComplete(evt) {
+    document.getElementById('result').innerHTML = evt.target.responseText;
+  }
+</script>

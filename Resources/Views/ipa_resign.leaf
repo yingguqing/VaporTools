@@ -1,0 +1,99 @@
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <title>ipa文件重签</title>
+  </head>
+  <script type="text/javascript" src="js/socket.js">
+  </script>
+  
+  <body style="text-align:center;">
+    <div class="row" id="main">
+      <label for="file">重签ipa:</label>
+      <input type="file" name="fileToUpload" id="fileToUpload" accept=".ipa,.app" onchange="fileSelected()" />
+      <br>
+      <br>
+      <span class="mb">选择描述文件</span>
+      <select name="mobileprovision" id="mobileprovision">#for(name in mobileprovisions):
+        <option>#(name)</option>#endfor</select>
+      <br>
+      <br>
+    </div>
+    <div id="fileName">
+    </div>
+    <div id="fileSize">
+    </div>
+    <div id="fileType">
+    </div>
+    <div class="row">
+      <input type="button" onclick="uploadFile()" value="重签" />
+    </div>
+    <div id="progressNumber"></div>
+    <div id="download_ipa"></div>
+  </body>
+
+</html>
+<script type="text/javascript">
+  var ipaName = '';
+  WebSocketStart("resign_ipa", resign);
+  function fileSelected() {
+    var file = document.getElementById('fileToUpload').files[0];
+    if (file) {
+      var fileSize = 0;
+      if (file.size > 1024 * 1024) {
+        fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
+      } else {
+        fileSize = (Math.round(file.size * 100 / 1024) / 100).toString() + 'KB';
+      }
+      document.getElementById('download_ipa').innerHTML = "";
+      document.getElementById('fileName').innerHTML = 'Name: ' + file.name;
+      document.getElementById('fileSize').innerHTML = 'Size: ' + fileSize;
+    }
+  }
+  function uploadFile() {
+    var file = document.getElementById('fileToUpload').files[0];
+    var xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener("progress", uploadProgress, false);
+    xhr.addEventListener("load", uploadComplete, false);
+    xhr.addEventListener("error", uploadFailed, false);
+    xhr.addEventListener("abort", uploadCanceled, false);
+    xhr.open("POST", "/upload_ipa");
+    xhr.setRequestHeader("File-Name", file.name);
+    xhr.setRequestHeader("next-run", "resign_ipa");
+    xhr.setRequestHeader("mobileprovision", document.getElementById('mobileprovision').value);
+    xhr.setRequestHeader("uuid", uuid);
+    xhr.send(file);
+  }
+  function uploadProgress(evt) {
+    if (evt.lengthComputable) {
+      var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+      document.getElementById('progressNumber').innerHTML = percentComplete.toString() + '%';
+    } else {
+      document.getElementById('progressNumber').innerHTML = 'unable to compute';
+    }
+  }
+  function uploadComplete(evt) {
+    /* This event is raised when the server send back a response */
+    WebSocketStart("resign_ipa", resign)
+  }
+  function uploadFailed(evt) {
+    alert("There was an error attempting to upload the file.");
+  }
+  function uploadCanceled(evt) {
+    alert("The upload has been canceled by the user or the browser dropped the connection.");
+  }
+  function resign(obj) {
+    if (obj.isSuccess) {
+      var main = document.getElementById('download_ipa');
+      var html;
+      console.log(main)
+      html=document.createElement('a');
+      html.setAttribute('href', obj.msg);
+      html.style.display='block';
+      html.innerText="下载重签ipa";
+      main.appendChild(html);
+    } else {
+      document.getElementById('progressNumber').innerHTML = obj.msg;
+    }
+  }
+</script>

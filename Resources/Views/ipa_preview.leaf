@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>查看ipa信息</title>
+    <style type="text/css">body { background: #f7f7f7; color: #000; margin: 20px; font: 13px monospace; line-height: 1.3; } .hiddenDiv { display: none; } .app { margin-bottom: 20px; } .app img { -webkit-filter: drop-shadow(0px 0px 3px rgba(0,0,0,0.5)); filter: drop-shadow(0px 0px 3px rgba(0,0,0,0.5)); max-width: 60px; border-radius: 15%; } .info .subsection { display: inline-block; vertical-align: top; } .info .list { padding-left: 20px; } .icon { padding-right: 20px; } .info > .list { display: inline-block; padding-left: 0px; } a { color: #aaa; } a:hover { color: #000; } a:visited { color: #aaa; } h1 { font-size: 18px; } h2 { font-size: 14px; text-transform: uppercase; } .expired { color: darkred; } .expiring { color: #996600; } .valid { color: darkgreen; } .deviceType { color: #aaa; font-size: 11px; } .clear { clear: left; } table { width: 600px; } tr { line-height: 1.75; } td { padding-left: 8px; padding-right: 8px; } tr:nth-child(odd) { background-color: #eee; } tr:nth-child(even) { background-color: #fafafa; } .footer { margin-top: 20px; color: #aaa; font-size: 11px; } @media (prefers-color-scheme: dark) { body { background: #323232; color: #fff; } a { color: #aaa; } a:hover { color: #fff; } a:visited { color: #aaa; } .expired { color: red; } .expiring { color: orange; } .valid { color: lightgreen; } tr:nth-child(odd) { background-color: #1e1e1e; } tr:nth-child(even) { background-color: #292929; } .div-left{width:300px;height:120px;border:1px solid #000;float:left} }</style>
+  </head>
+  <script type="text/javascript" src="js/socket.js">
+  </script>
+  
+  <body style="text-align:center;">
+    <div class="row" id="main">
+      <label for="file">ipa:</label>
+      <input type="file" name="fileToUpload" id="fileToUpload" accept=".ipa,.app" onchange="fileSelected()" />
+    </div>
+    <div id="fileName">
+    </div>
+    <div id="fileSize">
+    </div>
+    <div id="fileType">
+    </div>
+    <div class="row">
+      <input type="button" onclick="uploadFile()" value="查看" />
+    </div>
+    <div id="progressNumber" width="300px" style="text-align:left;">
+    </div>
+  </body>
+
+</html>
+<script type="text/javascript">
+  WebSocketStart("ipa_preview", preview)
+  function fileSelected() {
+    var file = document.getElementById('fileToUpload').files[0];
+    if (file) {
+      var fileSize = 0;
+      if (file.size > 1024 * 1024) {
+        fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
+      } else {
+        fileSize = (Math.round(file.size * 100 / 1024) / 100).toString() + 'KB';
+      }
+      document.getElementById('fileName').innerHTML = 'Name: ' + file.name;
+      document.getElementById('fileSize').innerHTML = 'Size: ' + fileSize;
+    }
+  }
+  function uploadFile() {
+    var file = document.getElementById('fileToUpload').files[0];
+    var xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener("progress", uploadProgress, false);
+    xhr.addEventListener("load", uploadComplete, false);
+    xhr.addEventListener("error", uploadFailed, false);
+    xhr.addEventListener("abort", uploadCanceled, false);
+    xhr.open("POST", "/upload_ipa");
+    xhr.setRequestHeader("File-Name", file.name);
+    xhr.setRequestHeader("next-run", "ipa_preview");
+    xhr.setRequestHeader("uuid", uuid);
+    xhr.send(file);
+  }
+  function uploadProgress(evt) {
+    if (evt.lengthComputable) {
+      var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+      document.getElementById('progressNumber').innerHTML = percentComplete.toString() + '%';
+    } else {
+      document.getElementById('progressNumber').innerHTML = 'unable to compute';
+    }
+  }
+  function uploadComplete(evt) {
+    /* This event is raised when the server send back a response */
+  }
+  function preview(obj) {
+    document.getElementById('progressNumber').innerHTML = obj.msg;
+  }
+  function uploadFailed(evt) {
+    alert("There was an error attempting to upload the file.");
+  }
+  function uploadCanceled(evt) {
+    alert("The upload has been canceled by the user or the browser dropped the connection.");
+  }
+</script>

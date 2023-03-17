@@ -1,0 +1,46 @@
+<div class="app __AppInfo__">
+    <h1>__AppInfoTitle__</h1>
+    <div class="floatLeft icon"><img alt="App icon" src="data:image/png;base64,__AppIcon__"/></div>
+    <div class="floatLeft info">
+        Name: <strong>__CFBundleName__</strong><br />
+        Version: __CFBundleShortVersionString__ (__CFBundleVersion__)<br />
+        BundleId: __CFBundleIdentifier__<br />
+        DeviceFamily: __UIDeviceFamily__<br />
+        SDK: __DTSDKName__<br />
+        Minimum OS Version: __MinimumOSVersion__<br />
+    </div>
+    <br class="clear" />
+    <h2>App Transport Security</h2>
+    __AppTransportSecurityFormatted__
+</div>
+
+<div class="provision __ProvisionInfo__">
+    <div class="__AppInfo__">
+        <h1>Provisioning</h1>
+        Profile name: <strong>__Name__</strong><br />
+    </div>
+    <div class="__ProvisionAsSubheader__">
+        <h1><span class="__ExpStatus__">__Name__</span></h1>
+    </div>
+
+    Profile UUID: __UUID__<br />
+    Profile Type: __ProfilePlatform__ __ProfileType__<br />
+    Team: __TeamName__ (__TeamIds__)<br />
+    Creation date: __CreationDateFormatted__ (__CreationSummary__)<br />
+    Expiration Date: <strong><span class="__ExpStatus__">__ExpirationDateFormatted__ (__ExpirationSummary__)</span></strong><br />
+
+    <h2>Entitlements</h2>
+    __EntitlementsFormatted__
+
+    <h2>Developer Certificates</h2>
+    __DeveloperCertificatesFormatted__
+
+    <h2>Devices (__ProvisionedDevicesCount__)</h2>
+    __ProvisionedDevicesFormatted__
+
+</div>
+<div class="fileInfo">
+    <h2>File info</h2>
+    __FileName__<br />
+    __FileInfo__<br />
+</div>
