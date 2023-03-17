@@ -4,15 +4,24 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+    .my-div {
+  width: 200px; /* 设置div的宽度 */
+  height: 100px; /* 设置div的高度 */
+  margin: 0 auto; /* 设置div的左右margin为auto */
+  text-align: left; /* 设置div内的内容左对齐 */
+}
+</style>
     <title>网络数据解密</title>
   </head>
   
-  <body >
+  <body style="text-align:center;">
     <h1>网络数据解密</h1>
     <textarea id="decrypt">
     </textarea>
     <br>
     <input type="button" onclick="decrypt()" value="解密" />
+    <div class="my-div">
     <pre id="json"></pre>
     </div>
   </body>

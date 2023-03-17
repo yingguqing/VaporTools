@@ -80,13 +80,11 @@ func routes(_ app: Application) throws {
         return .ok
     }
     
-    /*
-     app.get("download") { req -> EventLoopFuture<Response> in
-         let fileName = req.query["name"] ?? ""
-         guard !fileName.isEmpty else {
-             throw Abort(.notFound)
-         }
-         return req.eventLoop.makeSucceededFuture(req.fileio.streamFile(at: "Public/Resign/\(fileName)"))
-     }
-     */
+    app.get("download") { req -> EventLoopFuture<Response> in
+        let path = req.query["path"] ?? ""
+        guard !path.isEmpty, (DirectoryManager.share.publicDirectory / path).fileExists else {
+            throw Abort(.notFound)
+        }
+        return req.eventLoop.makeSucceededFuture(req.fileio.streamFile(at: "Public/\(path)"))
+    }
 }
