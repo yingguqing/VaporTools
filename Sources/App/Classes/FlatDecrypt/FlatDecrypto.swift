@@ -156,7 +156,7 @@ private extension String {
 
 enum FlatDecrypto {
     static func decrypt(value: String, json:String) -> String {
-        let dataString = value.replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\\/", with: "/")
+        let dataString = value.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\\/", with: "/")
         if let deItem = dataString.flatDecryptList(json) {
             return deItem
         } else if value.isEmpty {

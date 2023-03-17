@@ -7,13 +7,13 @@
     <title>网络数据解密</title>
   </head>
   
-  <body style="text-align:center;">
+  <body>
     <h1>网络数据解密</h1>
     <textarea id="decrypt">
     </textarea>
     <br>
     <input type="button" onclick="decrypt()" value="解密" />
-    <div id="result">
+    <pre id="json"></pre>
     </div>
   </body>
 
@@ -28,5 +28,34 @@
     xhr.send(fd);
   }
   function loadComplete(evt) {
-    document.getElementById('result').innerHTML = evt.target.responseText;
-  }</script>
+    var json = evt.target.responseText;
+    var html = syntaxHighlight(json);
+        document.getElementById('json').innerHTML=html;
+  }
+  // 方法实现
+function syntaxHighlight(json) {
+    if (typeof json != 'string') {
+        json = JSON.stringify(json, undefined, 2); //返回要JSON化的对象，2是spacing
+    }
+    json = json.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+        function(match) {
+            var cls = 'number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
+            }
+            return '<span style="color: green;">' + match + '</span>';
+        }
+    );
+}
+
+  
+  </script>
