@@ -7,7 +7,7 @@
     <title>网络数据解密</title>
   </head>
   
-  <body>
+  <body >
     <h1>网络数据解密</h1>
     <textarea id="decrypt">
     </textarea>
