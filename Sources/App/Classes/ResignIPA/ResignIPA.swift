@@ -40,7 +40,7 @@ class ResignIPA {
     /// 本地所有证书
     lazy var codesigningCerts: [String] = {
         var output: [String] = []
-        let securityResult = Process().execute(securityPath, workingDirectory: nil, arguments: ["find-identity", "-v", "-p", "codesigning"])
+        let securityResult = Process().execute(securityPath, arguments: ["find-identity", "-v", "-p", "codesigning"])
         if securityResult.output.count < 1 {
             return output
         }
@@ -139,7 +139,7 @@ class ResignIPA {
     }
     
     func unzip(_ inputFile: String, outputPath: String) -> Bool {
-        //return Process().execute(unzipPath, workingDirectory: nil, arguments: ["-q", inputFile, "-d", outputPath])
+        //return Process().execute(unzipPath, arguments: ["-q", inputFile, "-d", outputPath])
         do {
             try Zip.unzipFile(inputFile.fileURL, destination: outputPath.fileURL, overwrite: true, password: nil)
             return true
@@ -182,7 +182,7 @@ class ResignIPA {
     }
     
     func setPlistKey(_ plist: String, keyName: String, value: String) -> AppSignerTaskOutput {
-        return Process().execute(defaultsPath, workingDirectory: nil, arguments: ["write", plist, keyName, value])
+        return Process().execute(defaultsPath, arguments: ["write", plist, keyName, value])
     }
     
     // MARK: Codesigning
@@ -218,7 +218,7 @@ class ResignIPA {
         }
         arguments.append(filePath)
 
-        let codesignTask = Process().execute(codesignPath, workingDirectory: nil, arguments: arguments)
+        let codesignTask = Process().execute(codesignPath, arguments: arguments)
         if codesignTask.status != 0 {
             logger.info("Error codesign: \(codesignTask.output)")
         }
@@ -249,6 +249,7 @@ class ResignIPA {
             return
         }
         let workingDirectory = tempFolder.stringByAppendingPathComponent("out")
+        workingDirectory.createFilePath()
         let eggDirectory = tempFolder.stringByAppendingPathComponent("eggs")
         let payloadDirectory = workingDirectory.stringByAppendingPathComponent("Payload/")
         let entitlementsPlist = tempFolder.stringByAppendingPathComponent("entitlements.plist")
@@ -263,7 +264,8 @@ class ResignIPA {
         } catch let error as NSError {
             setStatus("Error creating egg temp directory")
             logger.error("\(error.localizedDescription)")
-            cleanup(tempFolder); return
+            cleanup(tempFolder)
+            return
         }
         
         // MARK: Process input file
@@ -279,7 +281,8 @@ class ResignIPA {
                 logger.info("\(debTask.output)")
                 if debTask.status != 0 {
                     setStatus("Error processing deb file")
-                    cleanup(tempFolder); return
+                    cleanup(tempFolder)
+                    return
                 }
                 
                 var tarUnpacked = false
@@ -297,7 +300,8 @@ class ResignIPA {
                 }
                 if !tarUnpacked {
                     setStatus("Error unpacking data.tar")
-                    cleanup(tempFolder); return
+                    cleanup(tempFolder)
+                    return
                 }
               
                 var sourcePath = debPath.stringByAppendingPathComponent("Applications")
@@ -309,7 +313,8 @@ class ResignIPA {
                 
             } catch {
                 setStatus("Error processing deb file")
-                cleanup(tempFolder); return
+                cleanup(tempFolder)
+                return
             }
             
         case "ipa":
@@ -356,7 +361,8 @@ class ResignIPA {
             
         default:
             setStatus("Unsupported input file")
-            cleanup(tempFolder); return
+            cleanup(tempFolder)
+            return
         }
         
         if !fileManager.fileExists(atPath: payloadDirectory) {
@@ -381,7 +387,7 @@ class ResignIPA {
                 let useAppBundleProfile = (provisioningFile.isEmpty && fileManager.fileExists(atPath: appBundleProvisioningFilePath))
                 
                 // MARK: Delete CFBundleResourceSpecification from Info.plist
-                let out = Process().execute(defaultsPath, workingDirectory: nil, arguments: ["delete", appBundleInfoPlist, "CFBundleResourceSpecification"]).output
+                let out = Process().execute(defaultsPath, arguments: ["delete", appBundleInfoPlist, "CFBundleResourceSpecification"]).output
                 logger.info("\(out)")
                 
                 // MARK: Copy Provisioning Profile
@@ -393,7 +399,8 @@ class ResignIPA {
                         } catch let error as NSError {
                             setStatus("Error deleting embedded.mobileprovision")
                             logger.error("\(error.localizedDescription)")
-                            cleanup(tempFolder); return
+                            cleanup(tempFolder)
+                            return
                         }
                     }
                     setStatus("Copying provisioning profile to app bundle")
@@ -402,7 +409,8 @@ class ResignIPA {
                     } catch let error as NSError {
                         setStatus("Error copying provisioning profile")
                         logger.error("\(error.localizedDescription)")
-                        cleanup(tempFolder); return
+                        cleanup(tempFolder)
+                        return
                     }
                 }
                 
@@ -419,7 +427,8 @@ class ResignIPA {
                         let isWildcard = profile.appID == "*" // TODO: support com.example.* wildcard
                         if !isWildcard, newApplicationID != "", newApplicationID != profile.appID {
                             setStatus("Unable to change App ID to \(newApplicationID), provisioning profile won't allow it")
-                            cleanup(tempFolder); return
+                            cleanup(tempFolder)
+                            return
                         } else if isWildcard {
                             if newApplicationID != "" {
                                 profile.update(trueAppID: newApplicationID)
@@ -446,7 +455,7 @@ class ResignIPA {
                 
                 // MARK: Make sure that the executable is well... executable.
                 if let bundleExecutable = getPlistKey(appBundleInfoPlist, keyName: "CFBundleExecutable") {
-                    _ = Process().execute(chmodPath, workingDirectory: nil, arguments: ["755", appBundlePath.stringByAppendingPathComponent(bundleExecutable)])
+                    _ = Process().execute(chmodPath, arguments: ["755", appBundlePath.stringByAppendingPathComponent(bundleExecutable)])
                 }
                 
                 // MARK: Change Application ID
@@ -463,7 +472,7 @@ class ResignIPA {
                                 setStatus("Changing \(appexFile) id to \(newAppexID)")
                                 _ = setPlistKey(appexPlist, keyName: "CFBundleIdentifier", value: newAppexID)
                             }
-                            if Process().execute(defaultsPath, workingDirectory: nil, arguments: ["read", appexPlist, "WKCompanionAppBundleIdentifier"]).status == 0 {
+                            if Process().execute(defaultsPath, arguments: ["read", appexPlist, "WKCompanionAppBundleIdentifier"]).status == 0 {
                                 _ = setPlistKey(appexPlist, keyName: "WKCompanionAppBundleIdentifier", value: newApplicationID)
                             }
                             // 修复微信改bundleid后安装失败问题
@@ -494,7 +503,7 @@ class ResignIPA {
                 // MARK: Change Display Name
                 if newDisplayName != "" {
                     setStatus("Changing Display Name to \(newDisplayName))")
-                    let displayNameChangeTask = Process().execute(defaultsPath, workingDirectory: nil, arguments: ["write", appBundleInfoPlist, "CFBundleDisplayName", newDisplayName])
+                    let displayNameChangeTask = Process().execute(defaultsPath, arguments: ["write", appBundleInfoPlist, "CFBundleDisplayName", newDisplayName])
                     if displayNameChangeTask.status != 0 {
                         setStatus("Error changing display name")
                         logger.error("\(displayNameChangeTask.output)")
@@ -506,7 +515,7 @@ class ResignIPA {
                 // MARK: Change Version
                 if newVersion != "" {
                     setStatus("Changing Version to \(newVersion)")
-                    let versionChangeTask = Process().execute(defaultsPath, workingDirectory: nil, arguments: ["write", appBundleInfoPlist, "CFBundleVersion", newVersion])
+                    let versionChangeTask = Process().execute(defaultsPath, arguments: ["write", appBundleInfoPlist, "CFBundleVersion", newVersion])
                     if versionChangeTask.status != 0 {
                         setStatus("Error changing version")
                         logger.error("\(versionChangeTask.output)")
@@ -518,7 +527,7 @@ class ResignIPA {
                 // MARK: Change Short Version
                 if newShortVersion != "" {
                     setStatus("Changing Short Version to \(newShortVersion)")
-                    let shortVersionChangeTask = Process().execute(defaultsPath, workingDirectory: nil, arguments: ["write", appBundleInfoPlist, "CFBundleShortVersionString", newShortVersion])
+                    let shortVersionChangeTask = Process().execute(defaultsPath, arguments: ["write", appBundleInfoPlist, "CFBundleShortVersionString", newShortVersion])
                     if shortVersionChangeTask.status != 0 {
                         setStatus("Error changing short version")
                         logger.error("\(shortVersionChangeTask.output)")
@@ -562,6 +571,7 @@ class ResignIPA {
                     eggCount += 1
                     
                     let currentEggPath = eggDirectory.stringByAppendingPathComponent("egg\(eggCount)")
+                    currentEggPath.createFilePath()
                     let shortName = String(eggFile[payloadDirectory.endIndex...])
                     setStatus("Extracting \(shortName)")
                     if !self.unzip(eggFile, outputPath: currentEggPath) {
@@ -583,7 +593,7 @@ class ResignIPA {
                 signingFunction(appBundlePath)
                 
                 // MARK: Codesigning - Verification
-                let verificationTask = Process().execute(codesignPath, workingDirectory: nil, arguments: ["-v", appBundlePath])
+                let verificationTask = Process().execute(codesignPath, arguments: ["-v", appBundlePath])
                 if verificationTask.status != 0 {
                     setStatus("Error verifying code signature")
                     logger.error("\(verificationTask.output)")
@@ -593,7 +603,8 @@ class ResignIPA {
         } catch let error as NSError {
             setStatus("Error listing files in payload directory")
             logger.error("\(error.localizedDescription)")
-            cleanup(tempFolder); return
+            cleanup(tempFolder)
+            return
         }
         
         // MARK: Packaging

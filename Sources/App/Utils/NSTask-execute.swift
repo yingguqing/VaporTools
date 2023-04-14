@@ -40,12 +40,12 @@ extension Process {
         }
     }
     
-    func execute(_ launchPath: String, workingDirectory: String?, arguments: [String]?) -> AppSignerTaskOutput {
+    func execute(_ launchPath: String, workingDirectory: String? = nil, arguments: [String]? = nil) -> AppSignerTaskOutput {
         self.launchPath = launchPath
         if arguments != nil {
             self.arguments = arguments
         }
-        if workingDirectory != nil {
+        if workingDirectory != nil, workingDirectory!.directoryExists {
             self.currentDirectoryPath = workingDirectory!
         }
         return self.launchSynchronous()

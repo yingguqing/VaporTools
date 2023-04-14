@@ -57,7 +57,7 @@ struct ProvisioningProfile {
     init?(filename: String) {
         let securityArgs = ["cms", "-D", "-i", filename]
         
-        let taskOutput = Process().execute("/usr/bin/security", workingDirectory: nil, arguments: securityArgs)
+        let taskOutput = Process().execute("/usr/bin/security", arguments: securityArgs)
         let rawXML: String
         if taskOutput.status == 0 {
             if let xmlIndex = taskOutput.output.range(of: "<?xml") {
